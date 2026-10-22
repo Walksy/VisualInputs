@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "walksy.visualinputs.mixin",
+  "compatibilityLevel": "JAVA_${java_version}",
+  "client": [
+    "KeyMappingMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

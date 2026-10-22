@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "visualinputs",
+  "version": "${version}",
+  "name": "Visual Inputs",
+  "description": "Shows where in each tick your inputs were pressed",
+  "authors": [
+    "Walksy"
+  ],
+  "contact": {
+    "issues": "https://github.com/Walksy/VisualInputs/issues",
+    "sources": "https://github.com/Walksy/VisualInputs",
+    "homepage": "https://discord.com/invite/zeu7uNuBWY"
+  },
+  "license": "MIT",
+  "icon": "assets/walksy/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "walksy.visualinputs.VisualInputs"
+    ],
+    "walksylib": [
+      "walksy.visualinputs.config.VisualInputsConfig"
+    ]
+  },
+  "mixins": [
+    "visualinputs.mixins.json"
+  ],
+  "depends": {
+    "minecraft": "${minecraft_dependency}",
+    "java": ">=${java_version}",
+    "walksylib": ">=2.0.1"
+  }
+}
