@@ -22,6 +22,7 @@ public final class FlushHud implements HudElement {
     private static final String EMPTY = "Nothing flushed yet";
 
     private final InputTimeline timeline;
+    private final HudLayout layout;
 
     private record Entry(InputTimeline.Flush flush, String label, int line, float x, boolean separated) {
     }
@@ -32,60 +33,87 @@ public final class FlushHud implements HudElement {
         }
     }
 
-    public FlushHud(final InputTimeline timeline) {
+    public FlushHud(final InputTimeline timeline, final HudLayout layout) {
         this.timeline = timeline;
+        this.layout = layout;
     }
 
     @Override
     public boolean visible() {
-        return HudLayout.visible();
+        return this.layout.visible();
+    }
+
+    @Override
+    public List<String> hudOptions() {
+        return VisualInputsConfig.FLUSH_LOOK;
+    }
+
+    public boolean allowsOverlap() {
+        return false;
+    }
+
+    @Override
+    public float defaultAnchorX() {
+        return 0f;
+    }
+
+    @Override
+    public float defaultAnchorY() {
+        return 0f;
+    }
+
+    @Override
+    public float defaultOffsetX() {
+        return HudLayout.LEFT_MARGIN;
     }
 
     @Override
     public float width(final float scale) {
-        return Metrics.width(scale);
+        return new Metrics(Surface.current()).width(scale);
     }
 
     @Override
     public float height(final float scale) {
-        return height(this.layout(scale), scale);
+        return height(this.layout(Surface.current(), scale), scale);
     }
 
     @Override
     public void render(final WLGraphics2D graphics, final float x, final float y, final float s, final boolean editing) {
-        final List<Row> rows = this.layout(s);
-        final float w = Metrics.width(s);
-        Surface.panel(graphics, x, y, w, height(rows, s), s);
+        final Surface surface = Surface.current();
+        final Metrics metrics = new Metrics(surface);
+        final List<Row> rows = this.layout(surface, s);
+        final float w = metrics.width(s);
+        surface.panel(graphics, x, y, w, height(rows, s), s);
 
         final float labelLeft = Metrics.labelLeft(x, s);
-        final float barLeft = Metrics.barLeft(x, s);
-        Surface.text(graphics, TITLE, labelLeft, y + Metrics.PAD_Y * s, Metrics.HEADER_HEIGHT * s, Metrics.HEADER_SIZE * s, Surface.secondaryColor(), false);
+        final float barLeft = metrics.barLeft(x, s);
+        surface.text(graphics, TITLE, labelLeft, y + Metrics.PAD_Y * s, Metrics.HEADER_HEIGHT * s, Metrics.HEADER_SIZE * s, surface.secondaryColor(), false);
 
         final float lineHeight = Metrics.ROW_HEIGHT * s;
         final float linePitch = (Metrics.ROW_HEIGHT + LINE_GAP) * s;
         final float size = ENTRY_SIZE * s;
         float top = Metrics.contentTop(y, s);
         if (rows.isEmpty()) {
-            Surface.text(graphics, EMPTY, barLeft, top, lineHeight, size, Surface.secondaryColor(), false);
+            surface.text(graphics, EMPTY, barLeft, top, lineHeight, size, surface.secondaryColor(), false);
             return;
         }
         final float spacing = SEPARATOR_SPACING * s;
-        final float separatorWidth = Surface.width(SEPARATOR, size, false);
+        final float separatorWidth = surface.width(SEPARATOR, size, false);
         final float right = x + w - Metrics.PAD_X * s;
         for (int index = 0; index < rows.size(); index++) {
             final Row row = rows.get(index);
             if (index > 0) {
-                Surface.divider(graphics, labelLeft, right, top - ROW_GAP * s / 2f, s);
+                surface.divider(graphics, labelLeft, right, top - ROW_GAP * s / 2f, s);
             }
-            Surface.text(graphics, Metrics.tickLabel(row.tick()), labelLeft, top, lineHeight, Metrics.TICK_SIZE * s, Surface.tickColor(), true);
+            surface.text(graphics, Metrics.tickLabel(row.tick()), labelLeft, top, lineHeight, Metrics.TICK_SIZE * s, surface.tickColor(), true);
             for (final Entry entry : row.entries()) {
                 final float lineTop = top + entry.line() * linePitch;
                 float cursor = barLeft + entry.x();
                 if (entry.separated()) {
-                    Surface.text(graphics, SEPARATOR, cursor, lineTop, lineHeight, size, Surface.secondaryColor(), false);
+                    surface.text(graphics, SEPARATOR, cursor, lineTop, lineHeight, size, surface.secondaryColor(), false);
                     cursor += separatorWidth + spacing;
                 }
-                Surface.text(graphics, entry.label(), cursor, lineTop, lineHeight, size, entry.flush().lane().color(), true);
+                surface.text(graphics, entry.label(), cursor, lineTop, lineHeight, size, entry.flush().lane().color(), true);
             }
             top += (row.height() + ROW_GAP) * s;
         }
@@ -102,7 +130,7 @@ public final class FlushHud implements HudElement {
         return Metrics.frameHeight(s) + content * s;
     }
 
-    private List<Row> layout(final float s) {
+    private List<Row> layout(final Surface surface, final float s) {
         final int count = Math.max(1, VisualInputsConfig.flushRows);
         final List<Long> ticks = new ArrayList<>(count);
         final List<List<InputTimeline.Flush>> grouped = new ArrayList<>(count);
@@ -122,15 +150,15 @@ public final class FlushHud implements HudElement {
         final float size = ENTRY_SIZE * s;
         final float room = Metrics.BAR_WIDTH * s;
         final float spacing = SEPARATOR_SPACING * s;
-        final float separatorWidth = spacing + Surface.width(SEPARATOR, size, false) + spacing;
+        final float separatorWidth = spacing + surface.width(SEPARATOR, size, false) + spacing;
         final List<Row> rows = new ArrayList<>(ticks.size());
         for (int index = 0; index < ticks.size(); index++) {
             final List<Entry> entries = new ArrayList<>();
             int line = 0;
             float cursor = 0f;
             for (final InputTimeline.Flush flush : grouped.get(index)) {
-                final String label = Surface.truncate(flush.label(), size, room, true);
-                final float entryWidth = Surface.width(label, size, true);
+                final String label = surface.truncate(flush.label(), size, room, true);
+                final float entryWidth = surface.width(label, size, true);
                 boolean separated = cursor > 0f;
                 if (separated && cursor + separatorWidth + entryWidth > room) {
                     line++;

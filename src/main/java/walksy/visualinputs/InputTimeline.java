@@ -6,6 +6,8 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
+import walksy.visualinputs.config.MinecraftTheme;
 import walksy.visualinputs.config.VisualInputsConfig;
 
 import java.util.ArrayDeque;

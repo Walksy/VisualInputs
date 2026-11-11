@@ -15,15 +15,14 @@ public final class Metrics {
     private static final long TICK_WRAP = 1000L;
     private static final String[] WIDEST_LABELS = {"T000", "T888", "T999"};
 
-    private Metrics() {
+    private final Surface surface;
+
+    public Metrics(final Surface surface) {
+        this.surface = surface;
     }
 
     public static String tickLabel(final long tick) {
         return "T" + Math.floorMod(tick, TICK_WRAP);
-    }
-
-    public static float width(final float s) {
-        return (PAD_X * 2f + LABEL_GAP + BAR_WIDTH) * s + labelWidth(s);
     }
 
     public static float frameHeight(final float s) {
@@ -34,18 +33,22 @@ public final class Metrics {
         return x + PAD_X * s;
     }
 
-    public static float barLeft(final float x, final float s) {
-        return labelLeft(x, s) + labelWidth(s) + LABEL_GAP * s;
-    }
-
     public static float contentTop(final float y, final float s) {
         return y + (PAD_Y + HEADER_HEIGHT + HEADER_GAP) * s;
     }
 
-    private static float labelWidth(final float s) {
+    public float width(final float s) {
+        return (PAD_X * 2f + LABEL_GAP + BAR_WIDTH) * s + this.labelWidth(s);
+    }
+
+    public float barLeft(final float x, final float s) {
+        return labelLeft(x, s) + this.labelWidth(s) + LABEL_GAP * s;
+    }
+
+    private float labelWidth(final float s) {
         float width = 0f;
         for (final String sample : WIDEST_LABELS) {
-            width = Math.max(width, Surface.width(sample, TICK_SIZE * s, true));
+            width = Math.max(width, this.surface.width(sample, TICK_SIZE * s, true));
         }
         return width > 0f ? width : FALLBACK_LABEL_WIDTH * s;
     }
